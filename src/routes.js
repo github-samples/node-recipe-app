@@ -40,4 +40,18 @@ router.post('/recipes/:id/edit', async (req, res) => {
 	res.redirect(`/recipes/${recipeId}`)
 })
 
+router.post('/recipes/:id/delete', async (req, res) => {
+	const db = await getDbConnection()
+	const recipeId = req.params.id
+	await db.run('DELETE FROM recipes WHERE id = ?', [recipeId])
+	res.redirect('/recipes')
+})
+
+// Get a random recipe
+router.get('/recipes/random', async (req, res) => {
+	const db = await getDbConnection()
+	const recipe = await db.get('SELECT * FROM recipes ORDER BY title LIMIT 1')
+	res.render('recipe', { recipe })
+})
+
 module.exports = router
