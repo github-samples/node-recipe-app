@@ -5,6 +5,17 @@
             <div class="recipe-actions">
                 <button class="btn btn-primary" onclick="showEditForm()">Edit Recipe</button>
                 <a href="/recipes" class="btn btn-secondary">Back to All Recipes</a>
+                {{#if currentUser}}
+                    {{#if isFavorited}}
+                        <form action="/recipes/{{recipe.id}}/unfavorite" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-secondary">Remove Favorite</button>
+                        </form>
+                    {{else}}
+                        <form action="/recipes/{{recipe.id}}/favorite" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-primary">Save Favorite</button>
+                        </form>
+                    {{/if}}
+                {{/if}}
                 <form action="/recipes/{{recipe.id}}/delete" method="POST" style="display:inline;">
                     <button type="submit" class="btn btn-danger" onclick="return confirm('确定要删除该菜谱吗？')">Delete</button>
                 </form>

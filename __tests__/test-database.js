@@ -30,6 +30,14 @@ async function createTables(db) {
 		username TEXT NOT NULL UNIQUE,
 		password_hash TEXT NOT NULL
 	)`)
+
+	// Create the 'favorites' table to link users to recipes
+	await db.exec(`CREATE TABLE IF NOT EXISTS favorites (
+		id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+		user_id INTEGER NOT NULL,
+		recipe_id INTEGER NOT NULL,
+		UNIQUE(user_id, recipe_id)
+	)`)
 }
 
 module.exports = { getTestDbConnection, initializeTestDb }

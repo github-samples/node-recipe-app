@@ -25,7 +25,17 @@ router.get('/recipes/:id', async (req, res) => {
 	const db = await getDbConnection()
 	const recipeId = req.params.id
 	const recipe = await db.get('SELECT * FROM recipes WHERE id = ?', [recipeId])
-	res.render('recipe', { recipe })
+	let isFavorited = false
+
+	if (req.session.user && recipe) {
+		const favorite = await db.get(
+			'SELECT id FROM favorites WHERE user_id = ? AND recipe_id = ?',
+			[req.session.user.id, recipeId]
+		)
+		isFavorited = Boolean(favorite)
+	}
+
+	res.render('recipe', { recipe, isFavorited })
 })
 
 router.get('/register', (req, res) => {
@@ -85,7 +95,40 @@ router.post('/logout', (req, res) => {
 })
 
 router.get('/profile', requireAuth, async (req, res) => {
-	res.render('profile', { user: req.session.user })
+	const db = await getDbConnection()
+	const favorites = await db.all(
+		`SELECT recipes.*
+		 FROM recipes
+		 INNER JOIN favorites ON favorites.recipe_id = recipes.id
+		 WHERE favorites.user_id = ?
+		 ORDER BY recipes.title ASC`,
+		[req.session.user.id]
+	)
+	res.render('profile', {
+		user: req.session.user,
+		favorites,
+		hasFavorites: favorites.length > 0,
+	})
+})
+
+router.post('/recipes/:id/favorite', requireAuth, async (req, res) => {
+	const db = await getDbConnection()
+	const recipeId = req.params.id
+	await db.run('INSERT OR IGNORE INTO favorites (user_id, recipe_id) VALUES (?, ?)', [
+		req.session.user.id,
+		recipeId,
+	])
+	res.redirect(`/recipes/${recipeId}`)
+})
+
+router.post('/recipes/:id/unfavorite', requireAuth, async (req, res) => {
+	const db = await getDbConnection()
+	const recipeId = req.params.id
+	await db.run('DELETE FROM favorites WHERE user_id = ? AND recipe_id = ?', [
+		req.session.user.id,
+		recipeId,
+	])
+	res.redirect(`/recipes/${recipeId}`)
 })
 
 router.post('/recipes', async (req, res) => {

@@ -3,7 +3,21 @@
 
     {{#if user}}
         <p>Signed in as <strong>{{user.username}}</strong>.</p>
-        <p>Your saved recipes will appear here once the favorites feature is added.</p>
+        <h2>Saved Recipes</h2>
+        {{#if hasFavorites}}
+            <ul class="favorites-list">
+                {{#each favorites}}
+                    <li class="favorite-item">
+                        <a href="/recipes/{{id}}">{{title}}</a>
+                        <form action="/recipes/{{id}}/unfavorite" method="POST" style="display:inline; margin-left: 10px;">
+                            <button type="submit" class="btn btn-secondary">Remove</button>
+                        </form>
+                    </li>
+                {{/each}}
+            </ul>
+        {{else}}
+            <p>You have not saved any recipes yet.</p>
+        {{/if}}
     {{else}}
         <p>Please <a href="/login">login</a> to view your profile.</p>
     {{/if}}

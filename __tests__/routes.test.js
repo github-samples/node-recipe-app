@@ -106,6 +106,56 @@ describe('Routes', () => {
     expect(response.headers.location).toBe('/login');
   });
 
+  test('POST /recipes/:id/favorite should save a recipe for the user', async () => {
+    const agent = request.agent(app);
+    await agent
+      .post('/register')
+      .send({ username: 'favuser', password: 'password123' });
+
+    await agent
+      .post('/recipes')
+      .send({ title: 'Favorite Recipe', ingredients: 'Test', method: 'Test' });
+
+    const recipe = await db.get('SELECT * FROM recipes WHERE title = ?', ['Favorite Recipe']);
+    expect(recipe).toBeDefined();
+
+    const response = await agent
+      .post(`/recipes/${recipe.id}/favorite`)
+      .send();
+
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe(`/recipes/${recipe.id}`);
+
+    const favorite = await db.get('SELECT * FROM favorites WHERE recipe_id = ?', [recipe.id]);
+    expect(favorite).toBeDefined();
+  });
+
+  test('POST /recipes/:id/unfavorite should remove a saved recipe', async () => {
+    const agent = request.agent(app);
+    await agent
+      .post('/register')
+      .send({ username: 'unfavuser', password: 'password123' });
+
+    await agent
+      .post('/recipes')
+      .send({ title: 'Unfavorite Recipe', ingredients: 'Test', method: 'Test' });
+
+    const recipe = await db.get('SELECT * FROM recipes WHERE title = ?', ['Unfavorite Recipe']);
+    expect(recipe).toBeDefined();
+
+    await agent.post(`/recipes/${recipe.id}/favorite`).send();
+
+    const response = await agent
+      .post(`/recipes/${recipe.id}/unfavorite`)
+      .send();
+
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe(`/recipes/${recipe.id}`);
+
+    const favorite = await db.get('SELECT * FROM favorites WHERE recipe_id = ?', [recipe.id]);
+    expect(favorite).toBeUndefined();
+  });
+
     test('POST /recipes/:id/delete should delete a recipe', async () => {
       // 先插入一条菜谱
       const recipe = {
