@@ -64,4 +64,42 @@ describe('Routes', () => {
     expect(recipe).toBeDefined();
     expect(recipe.title).toBe(newRecipe.title);
   });
+
+  test('POST /recipes should return 400 if title is empty', async () => {
+    const response = await request(app)
+      .post('/recipes')
+      .send({ title: '', ingredients: 'Some ingredients', method: 'Some method' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('Title is required');
+  });
+
+  test('POST /recipes should return 400 if title is whitespace only', async () => {
+    const response = await request(app)
+      .post('/recipes')
+      .send({ title: '   ', ingredients: 'Some ingredients', method: 'Some method' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('Title is required');
+  });
+
+  test('DELETE /recipes/:id should delete the recipe and return 404 on subsequent GET', async () => {
+    // First create a recipe to delete
+    const newRecipe = {
+      title: 'Recipe To Delete',
+      ingredients: 'Some ingredients',
+      method: 'Some method'
+    };
+    await request(app).post('/recipes').send(newRecipe);
+    const created = await db.get('SELECT * FROM recipes WHERE title = ?', [newRecipe.title]);
+    expect(created).toBeDefined();
+
+    // Delete it
+    const deleteResponse = await request(app).delete(`/recipes/${created.id}`);
+    expect(deleteResponse.status).toBe(204);
+
+    // Verify recipe no longer exists in the database
+    const deleted = await db.get('SELECT * FROM recipes WHERE id = ?', [created.id]);
+    expect(deleted).toBeUndefined();
+  });
 });
