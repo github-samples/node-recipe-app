@@ -9,7 +9,7 @@ router.get('/', (req, res) => {
 
 router.get('/recipes', async (req, res) => {
 	const db = await getDbConnection()
-	const recipes = await db.all('SELECT * FROM recipes')
+	const recipes = await db.all('SELECT * FROM recipes ORDER BY title')
 	res.render('recipes', { recipes })
 })
 
@@ -38,6 +38,18 @@ router.post('/recipes/:id/edit', async (req, res) => {
 		recipeId,
 	])
 	res.redirect(`/recipes/${recipeId}`)
+})
+
+router.post('/recipes/:id/delete', async (req, res) => {
+	const db = await getDbConnection()
+	const recipeId = req.params.id
+	await db.run('DELETE FROM recipes WHERE id = ?', [recipeId])
+	res.redirect('/recipes')
+})
+router.get('/random', async (req, res) => {
+	const db = await getDbConnection()
+	const recipe = await db.get('SELECT * FROM recipes ORDER BY RANDOM() LIMIT 1')
+	res.render('recipe', { recipe })
 })
 
 module.exports = router
