@@ -2,8 +2,8 @@
 
 ## Technology Stack
 - Node.js with Express
-- SQLite via better-sqlite3
-- EJS templates for server-rendered HTML
+- SQLite via the `sqlite` promise wrapper and `sqlite3` driver
+- Handlebars via express-handlebars with `.hbs` templates for server-rendered HTML
 - xUnit-style tests with Jest
 
 ## Code Style
